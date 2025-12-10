@@ -224,55 +224,6 @@ def dashboard():
     return redirect(url_for("login"))
 
 
-@app.route("/items", methods=["GET", "POST"])
-def items():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE username = ?", (session["username"],))
-    user = c.fetchone()
-    conn.close()
-    
-    if not user:
-        return redirect(url_for("login"))
-    
-    user_id = user[0]
-    
-    if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        description = request.form.get("description", "").strip()
-        
-        if not title:
-            return render_template("items.html", username=session["username"], error="Title is required", user_items=get_user_items(user_id))
-        
-        if add_item(user_id, title, description):
-            return redirect(url_for("items"))
-        else:
-            return render_template("items.html", username=session["username"], error="Error adding item", user_items=get_user_items(user_id))
-    
-    user_items = get_user_items(user_id)
-    return render_template("items.html", username=session["username"], user_items=user_items, user_id=user_id)
-
-
-@app.route("/delete-item/<int:item_id>", methods=["POST"])
-def delete_item_route(item_id):
-    if "username" not in session:
-        return redirect(url_for("login"))
-    
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE username = ?", (session["username"],))
-    user = c.fetchone()
-    conn.close()
-    
-    if user and delete_item(item_id, user[0]):
-        return redirect(url_for("items"))
-    
-    return redirect(url_for("items"))
-
-
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if "username" not in session:

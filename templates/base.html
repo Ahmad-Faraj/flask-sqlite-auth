@@ -16,7 +16,6 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li><a href="{{ url_for('dashboard') }}" class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">Dashboard</a></li>
-                    <li><a href="{{ url_for('items') }}" class="nav-link{% if request.endpoint == 'items' %} active{% endif %}">Items</a></li>
                     <li><a href="{{ url_for('settings') }}" class="nav-link{% if request.endpoint == 'settings' %} active{% endif %}">Settings</a></li>
                     <li><a href="{{ url_for('admin') }}" class="nav-link{% if request.endpoint == 'admin' %} active{% endif %}">Admin</a></li>
                 </ul>
