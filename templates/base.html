@@ -33,7 +33,9 @@
         </main>
     </div>
     {% else %}
-    {% block content %}{% endblock %}
+    <div class="auth-container">
+        {% block content %}{% endblock %}
+    </div>
     {% endif %}
 </body>
 </html>
