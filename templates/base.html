@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Auth App{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% if session.get('username') %}
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>App</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">Dashboard</a></li>
+                    <li><a href="{{ url_for('items') }}" class="nav-link{% if request.endpoint == 'items' %} active{% endif %}">Items</a></li>
+                    <li><a href="{{ url_for('settings') }}" class="nav-link{% if request.endpoint == 'settings' %} active{% endif %}">Settings</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="nav-link{% if request.endpoint == 'admin' %} active{% endif %}">Admin</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <p>{{ session['username'] }}</p>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    {% block content %}{% endblock %}
+    {% endif %}
+</body>
+</html>
