@@ -7,30 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div {% if session.get('username') %}class="app-wrapper"{% else %}class="auth-container"{% endif %}>
-        {% if session.get('username') %}
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>App</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li><a href="{{ url_for('dashboard') }}" class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">Dashboard</a></li>
-                    <li><a href="{{ url_for('settings') }}" class="nav-link{% if request.endpoint == 'settings' %} active{% endif %}">Settings</a></li>
-                    <li><a href="{{ url_for('admin') }}" class="nav-link{% if request.endpoint == 'admin' %} active{% endif %}">Admin</a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <p>{{ session['username'] }}</p>
-                </div>
-                <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
-            </div>
-        </aside>
-        {% endif %}
-        <main class="main-content">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
+    {% if session.get('username') %}
+    <header class="topbar">
+        <div class="brand">Auth App</div>
+        <nav class="nav">
+            <a href="{{ url_for('dashboard') }}" class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">Dashboard</a>
+            <a href="{{ url_for('settings') }}" class="nav-link{% if request.endpoint == 'settings' %} active{% endif %}">Settings</a>
+            <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+        </nav>
+    </header>
+    {% endif %}
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
 </body>
 </html>

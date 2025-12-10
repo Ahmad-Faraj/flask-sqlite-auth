@@ -3,35 +3,11 @@
 {% block title %}Dashboard - Auth App{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Dashboard</h1>
-    <p>Welcome back, {{ username }}</p>
-</div>
-
-<div class="dashboard-content">
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Total Items</h3>
-            <p class="stat-number">{{ items|length }}</p>
-        </div>
+<section class="page">
+    <div class="card">
+        <h1>Dashboard</h1>
+        <p>Welcome back, {{ username }}.</p>
     </div>
-
-    <div class="recent-items">
-        <h2>Recent Items</h2>
-        {% if items %}
-            <div class="items-list">
-                {% for item in items[:5] %}
-                    <div class="item-card">
-                        <h4>{{ item[1] }}</h4>
-                        <p>{{ item[2] if item[2] else 'No description' }}</p>
-                        <small>{{ item[3] }}</small>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="empty-state">No items yet. Create your first item in Items section.</p>
-        {% endif %}
-    </div>
-</div>
+</section>
 {% endblock %}
 

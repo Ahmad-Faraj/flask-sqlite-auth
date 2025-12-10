@@ -1,4 +1,21 @@
-* {
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:sans-serif;background:#141313;color:#FFE4C4;}
+.page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px;}
+.card{background:rgba(0,0,0,.55);padding:32px;border-radius:10px;max-width:520px;width:100%;border:1px solid rgba(255,228,196,.25);box-shadow:0 12px 30px rgba(0,0,0,.35);}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:rgba(0,0,0,.7);position:sticky;top:0;backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,228,196,.2);}
+.brand{font-weight:700;letter-spacing:0.5px;color:#FFE4C4;}
+.nav a{margin-left:16px;color:#FFE4C4;text-decoration:none;padding:6px 10px;border-radius:6px;transition:all .2s ease;}
+.nav a:hover,.nav a.active{background:rgba(255,228,196,.12);}
+h1{margin-bottom:10px;font-size:24px;}
+p{line-height:1.5;}
+form{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
+input{padding:10px;border:1px solid rgba(255,228,196,.4);background:rgba(255,228,196,0.06);color:#FFE4C4;border-radius:6px;}
+input:focus{outline:none;border-color:#FFE4C4;background:rgba(255,228,196,0.12);}
+button{padding:10px;border:none;background:#FFE4C4;color:#141313;border-radius:6px;cursor:pointer;font-weight:600;}
+button:hover{background:white;}
+.error{color:#FF6464;font-size:14px;}
+.success{color:#7bd88a;font-size:14px;}
+.auth-box{max-width:420px;width:100%;}* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
