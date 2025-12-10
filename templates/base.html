@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    {% if session.get('username') %}
-    <div class="app-wrapper">
+    <div {% if session.get('username') %}class="app-wrapper"{% else %}class="auth-container"{% endif %}>
+        {% if session.get('username') %}
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>App</h2>
@@ -28,14 +28,10 @@
                 <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
             </div>
         </aside>
+        {% endif %}
         <main class="main-content">
             {% block content %}{% endblock %}
         </main>
     </div>
-    {% else %}
-    <div class="auth-container">
-        {% block content %}{% endblock %}
-    </div>
-    {% endif %}
 </body>
 </html>
