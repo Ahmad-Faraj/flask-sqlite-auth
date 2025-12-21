@@ -1,0 +1,13 @@
+FROM nginx:alpine
+
+COPY index.html /usr/share/nginx/html/
+COPY login.html /usr/share/nginx/html/
+COPY signup.html /usr/share/nginx/html/
+COPY courses.html /usr/share/nginx/html/
+COPY my-courses.html /usr/share/nginx/html/
+COPY grades.html /usr/share/nginx/html/
+COPY students.html /usr/share/nginx/html/
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

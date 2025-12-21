@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - sqlite_data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - university_net
+    container_name: university_backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - university_net
+    container_name: university_frontend
+
+  database:
+    image: alpine:latest
+    command: tail -f /dev/null
+    volumes:
+      - sqlite_data:/data
+    networks:
+      - university_net
+    container_name: university_database
+
+volumes:
+  sqlite_data:
+    driver: local
+
+networks:
+  university_net:
+    driver: bridge

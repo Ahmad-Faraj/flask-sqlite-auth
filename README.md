@@ -1,67 +1,53 @@
-# Flask Login & Sign-up App
+# Student Management System
 
-A minimal, modern Flask web application with user authentication using SQLite.
+Flask backend with SQLite, multi-page HTML frontend.
 
-## Features
+## Docker
 
-- User registration (Sign-up)
-- User login with password hashing
-- Protected dashboard
-- Modern, sleek UI with animations
-- Native SQLite3 database (no ORM)
-
-## Project Structure
-
-```
-flask-app/
-├── app.py              # Main Flask application
-├── requirements.txt    # Python dependencies
-├── templates/          # HTML templates
-│   ├── base.html      # Base template
-│   ├── login.html     # Login form
-│   ├── signup.html    # Sign-up form
-│   └── dashboard.html # Dashboard (after login)
-└── static/
-    └── styles.css     # Modern CSS with animations
+```bash
+docker-compose up --build
 ```
 
-## Setup & Run
+Open http://localhost:3000
 
-### 1. Install Dependencies
+## Manual
 
-```powershell
-pip install -r requirements.txt
-```
-
-### 2. Run the Application
-
-```powershell
+```bash
+pip install flask flask-cors
 python app.py
 ```
 
-The app will start on `http://127.0.0.1:5000/`
+Open `index.html` in browser or:
 
-## Usage
-
-1. **Sign Up**: Create a new account with username and password
-2. **Login**: Use your credentials to log in
-3. **Dashboard**: Access your dashboard after successful login
-4. **Logout**: Click logout to exit
-
-## Database
-
-The SQLite database (`users.db`) is created automatically on first run with the following schema:
-
-```
-users (id, username, password)
+```bash
+python -m http.server 3000
 ```
 
-- Username must be unique
-- Password is hashed using SHA256
+## Configuration
 
-## Notes
+Edit `.env` file:
 
-- Change the `secret_key` in `app.py` for production use
-- Minimum username length: 3 characters
-- Minimum password length: 6 characters
-- The database file is created in the project root directory
+```
+SECRET_KEY=your-secret-key
+PORT=5000
+DEBUG=True
+DATA_DIR=.
+```
+
+## API Endpoints
+
+- POST /api/register
+- POST /api/login
+- GET /api/courses
+- POST /api/courses/{id}/enroll
+- GET /api/my-courses/{user_id}
+- GET /api/grades/{user_id}
+
+## Pages
+
+- `index.html` - Home
+- `login.html` - Login
+- `signup.html` - Registration
+- `courses.html` - Course list
+- `my-courses.html` - Enrolled courses
+- `grades.html` - Grade view

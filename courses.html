@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fafafa; color: #1a1a1a; min-height: 100vh; }
+        .header { background: #fff; padding: 20px 0; border-bottom: 1px solid #f0f0f0; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .header-content { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+        .user-name { font-weight: 600; font-size: 15px; color: #0a0a0a; }
+        .nav { display: flex; gap: 8px; }
+        .btn { padding: 10px 20px; border: none; cursor: pointer; text-decoration: none; color: #4a4a4a; font-size: 14px; background: transparent; transition: all 0.2s; font-weight: 500; border-radius: 8px; }
+        .btn:hover { background: #f5f5f5; color: #0a0a0a; }
+        .container { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+        h1 { margin-bottom: 24px; font-size: 32px; font-weight: 700; letter-spacing: -1px; color: #0a0a0a; }
+        .course-card { background: #fff; padding: 24px; margin: 16px 0; border: 1px solid #f0f0f0; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s; }
+        .course-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .course-card h3 { margin-bottom: 8px; font-weight: 600; font-size: 18px; color: #0a0a0a; }
+        .course-card p { color: #6a6a6a; margin: 4px 0; font-size: 14px; }
+        .course-card .btn { margin-top: 16px; background: #0a0a0a; color: #fff; padding: 10px 24px; }
+        .course-card .btn:hover { background: #2a2a2a; transform: none; }
+        .alert { padding: 14px 18px; margin: 16px 0; border-radius: 12px; font-size: 14px; }
+        .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+        .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <strong class="user-name" id="user-name"></strong>
+            </div>
+            <div class="nav">
+                <a href="courses.html" class="btn">Courses</a>
+                <a href="my-courses.html" class="btn">My Courses</a>
+                <a href="students.html" class="btn">Students</a>
+                <button onclick="logout()" class="btn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Available Courses</h1>
+        <div id="message"></div>
+        <div id="courses-list"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let currentUser = null;
+
+        function init() {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = JSON.parse(userStr);
+            document.getElementById('user-name').textContent = currentUser.name;
+            loadCourses();
+        }
+
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => { messageDiv.innerHTML = ''; }, 3000);
+        }
+
+        async function loadCourses() {
+            try {
+                const response = await fetch(`${API_BASE}/courses`);
+                const courses = await response.json();
+                const coursesDiv = document.getElementById('courses-list');
+                coursesDiv.innerHTML = '';
+                
+                courses.forEach(course => {
+                    const card = document.createElement('div');
+                    card.className = 'course-card';
+                    card.innerHTML = `
+                        <h3>${course.name}</h3>
+                        <p>${course.code}</p>
+                        <button class="btn" style="margin-top: 15px;" onclick="enrollCourse(${course.id})">Enroll</button>
+                    `;
+                    coursesDiv.appendChild(card);
+                });
+            } catch (error) {
+                showMessage('Error loading courses', 'error');
+            }
+        }
+
+        async function enrollCourse(courseId) {
+            try {
+                const response = await fetch(`${API_BASE}/courses/${courseId}/enroll`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentUser.id })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Enrolled successfully!');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Enrollment failed', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>

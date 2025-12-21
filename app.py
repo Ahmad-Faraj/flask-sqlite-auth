@@ -1,144 +1,201 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import hashlib
-import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
+import re
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_change_this"
+CORS(app)
+DB_PATH = os.path.join(os.getenv("DATA_DIR", "."), "university.db")
 
-DB = "users.db"
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def validate_password(password):
+    if len(password) < 8 or len(password) > 128:
+        return False, "Password must be 8-128 characters"
+    if not re.search(r"\d", password):
+        return False, "Password must contain at least one number"
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, "Password must contain at least one special character"
+    return True, ""
 
 
 def init_db():
-    if os.path.exists(DB):
-        return
-    with sqlite3.connect(DB) as conn:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, name TEXT, role TEXT DEFAULT 'student')"
+    )
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS courses (id INTEGER PRIMARY KEY, name TEXT, code TEXT UNIQUE)"
+    )
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS enrollments (id INTEGER PRIMARY KEY, user_id INTEGER, course_id INTEGER, grade TEXT)"
+    )
+    cursor.execute("SELECT COUNT(*) FROM courses")
+    if cursor.fetchone()[0] == 0:
+        courses = [
+            ("Introduction to Programming", "CS101"),
+            ("Database Systems", "CS201"),
+            ("Web Development", "CS301"),
+            ("Data Structures", "CS102"),
+            ("Software Engineering", "CS401"),
+        ]
+        cursor.executemany("INSERT INTO courses (name, code) VALUES (?, ?)", courses)
+    conn.commit()
+    conn.close()
+
+
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.json
+    if not all(
+        [
+            data.get("username"),
+            data.get("email"),
+            data.get("name"),
+            data.get("password"),
+        ]
+    ):
+        return jsonify({"error": "Missing required fields"}), 400
+    is_valid, error_msg = validate_password(data["password"])
+    if not is_valid:
+        return jsonify({"error": error_msg}), 400
+    conn = get_db()
+    try:
         conn.execute(
-            "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL)"
+            "INSERT INTO users (username, email, password, name, role) VALUES (?, ?, ?, ?, ?)",
+            (
+                data["username"],
+                data["email"],
+                generate_password_hash(data["password"]),
+                data["name"],
+                data.get("role", "student"),
+            ),
         )
-
-
-def hash_pw(pw: str) -> str:
-    return hashlib.sha256(pw.encode()).hexdigest()
-
-
-def get_user(username: str):
-    with sqlite3.connect(DB) as conn:
-        cur = conn.execute("SELECT id, username, password FROM users WHERE username = ?", (username,))
-        return cur.fetchone()
-
-
-def create_user(username: str, password: str) -> bool:
-    try:
-        with sqlite3.connect(DB) as conn:
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hash_pw(password)),
-            )
-        return True
+        conn.commit()
+        user = conn.execute(
+            "SELECT id, username, email, name, role FROM users WHERE username = ?",
+            (data["username"],),
+        ).fetchone()
+        return jsonify({"user": dict(user)}), 201
     except sqlite3.IntegrityError:
-        return False
+        return jsonify({"error": "Username or email already exists"}), 400
+    finally:
+        conn.close()
 
 
-def update_password(username: str, new_password: str) -> bool:
-    try:
-        with sqlite3.connect(DB) as conn:
-            conn.execute(
-                "UPDATE users SET password = ? WHERE username = ?",
-                (hash_pw(new_password), username),
-            )
-        return True
-    except Exception:
-        return False
-
-
-@app.route("/")
-def index():
-    return redirect(url_for("login"))
-
-
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/api/login", methods=["POST"])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        user = get_user(username)
-
-        if user and user[2] == hash_pw(password):
-            session["username"] = username
-            return redirect(url_for("dashboard"))
-        else:
-            return render_template("login.html", error="Invalid credentials")
-
-    return render_template("login.html")
-
-
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        confirm_password = request.form["confirm_password"]
-
-        if len(username) < 3:
-            return render_template(
-                "signup.html", error="Username must be at least 3 characters"
-            )
-        if len(password) < 6:
-            return render_template(
-                "signup.html", error="Password must be at least 6 characters"
-            )
-        if password != confirm_password:
-            return render_template("signup.html", error="Passwords do not match")
-
-        if create_user(username, password):
-            return redirect(url_for("login"))
-        return render_template("signup.html", error="Username already exists")
-
-    return render_template("signup.html")
+    data = request.json
+    if not data.get("username") or not data.get("password"):
+        return jsonify({"error": "Username and password required"}), 400
+    conn = get_db()
+    user = conn.execute(
+        "SELECT * FROM users WHERE username = ?", (data["username"],)
+    ).fetchone()
+    conn.close()
+    if user and check_password_hash(user["password"], data["password"]):
+        user_dict = dict(user)
+        del user_dict["password"]
+        return jsonify({"user": user_dict}), 200
+    return jsonify({"error": "Invalid username or password"}), 401
 
 
-@app.route("/dashboard")
-def dashboard():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    return render_template("dashboard.html", username=session["username"])
+@app.route("/api/courses")
+def get_courses():
+    conn = get_db()
+    courses = [dict(row) for row in conn.execute("SELECT * FROM courses").fetchall()]
+    conn.close()
+    return jsonify(courses)
 
 
-@app.route("/settings", methods=["GET", "POST"])
-def settings():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
-    if request.method == "POST":
-        old_password = request.form.get("old_password", "")
-        new_password = request.form.get("new_password", "")
-        confirm_password = request.form.get("confirm_password", "")
-
-        user = get_user(session["username"])
-
-        if not user or user[2] != hash_pw(old_password):
-            return render_template("settings.html", username=session["username"], error="Old password is incorrect")
-
-        if len(new_password) < 6:
-            return render_template("settings.html", username=session["username"], error="New password must be at least 6 characters")
-
-        if new_password != confirm_password:
-            return render_template("settings.html", username=session["username"], error="Passwords do not match")
-
-        if update_password(session["username"], new_password):
-            return render_template("settings.html", username=session["username"], success="Password changed successfully")
-        return render_template("settings.html", username=session["username"], error="Error changing password")
-
-    return render_template("settings.html", username=session["username"])
+@app.route("/api/courses/<int:course_id>/enroll", methods=["POST"])
+def enroll_course(course_id):
+    user_id = request.json.get("user_id")
+    if not user_id:
+        return jsonify({"error": "User ID required"}), 400
+    conn = get_db()
+    if not conn.execute("SELECT * FROM courses WHERE id = ?", (course_id,)).fetchone():
+        conn.close()
+        return jsonify({"error": "Course not found"}), 404
+    if conn.execute(
+        "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
+        (user_id, course_id),
+    ).fetchone():
+        conn.close()
+        return jsonify({"error": "Already enrolled"}), 400
+    conn.execute(
+        "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)",
+        (user_id, course_id),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Enrolled"}), 201
 
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+@app.route("/api/my-courses/<int:user_id>")
+def get_my_courses(user_id):
+    conn = get_db()
+    courses = [
+        dict(row)
+        for row in conn.execute(
+            "SELECT c.*, e.grade, e.id as enrollment_id FROM courses c JOIN enrollments e ON c.id = e.course_id WHERE e.user_id = ?",
+            (user_id,),
+        ).fetchall()
+    ]
+    conn.close()
+    return jsonify(courses)
+
+
+@app.route("/api/students")
+def get_students():
+    conn = get_db()
+    students = conn.execute("SELECT id, username, name, email FROM users").fetchall()
+    result = []
+    for student in students:
+        courses = conn.execute(
+            "SELECT c.name, c.code FROM courses c JOIN enrollments e ON c.id = e.course_id WHERE e.user_id = ?",
+            (student["id"],),
+        ).fetchall()
+        result.append(
+            {
+                "id": student["id"],
+                "username": student["username"],
+                "name": student["name"],
+                "email": student["email"],
+                "courses": [dict(c) for c in courses],
+            }
+        )
+    conn.close()
+    return jsonify(result)
+
+
+@app.route("/api/enrollments/<int:enrollment_id>", methods=["DELETE"])
+def unenroll(enrollment_id):
+    conn = get_db()
+    conn.execute("DELETE FROM enrollments WHERE id = ?", (enrollment_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Unenrolled"}), 200
+
+
+@app.route("/api/students/<int:user_id>", methods=["DELETE"])
+def delete_student(user_id):
+    conn = get_db()
+    conn.execute("DELETE FROM enrollments WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Student deleted"}), 200
 
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))

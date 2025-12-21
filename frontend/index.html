@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Student Management</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>University Portal</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="#" class="nav-link" onclick="showPage('dashboard')">Dashboard</a>
+                <a href="#" class="nav-link" onclick="showPage('courses')">Courses</a>
+                <a href="#" class="nav-link" onclick="showPage('grades')">Grades</a>
+                <a href="#" class="nav-link" onclick="showPage('profile')">Profile</a>
+                <a href="#" class="nav-link" id="logout-btn" onclick="logout()">Logout</a>
+            </div>
+            <div class="user-info" id="user-info">
+                <span id="user-name">Welcome</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Login Page -->
+        <div class="page" id="login-page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2>Login to University Portal</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-username">Username</label>
+                            <input type="text" id="login-username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                    <p class="auth-switch">
+                        Don't have an account? 
+                        <a href="#" onclick="showPage('signup')">Sign up here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Page -->
+        <div class="page" id="signup-page" style="display: none;">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2>Create Account</h2>
+                    <form id="signup-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="first-name" name="first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="last-name" name="last_name" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-username">Username</label>
+                            <input type="text" id="signup-username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-email">Email</label>
+                            <input type="email" id="signup-email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" name="password" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="major">Major</label>
+                                <input type="text" id="major" name="major" placeholder="e.g., Computer Science">
+                            </div>
+                            <div class="form-group">
+                                <label for="year-level">Year Level</label>
+                                <select id="year-level" name="year_level">
+                                    <option value="freshman">Freshman</option>
+                                    <option value="sophomore">Sophomore</option>
+                                    <option value="junior">Junior</option>
+                                    <option value="senior">Senior</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                    <p class="auth-switch">
+                        Already have an account? 
+                        <a href="#" onclick="showPage('login')">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div class="page" id="dashboard-page" style="display: none;">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <p>Welcome to your university portal</p>
+            </div>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-icon">📚</div>
+                    <h3>My Courses</h3>
+                    <p id="course-count">0 enrolled</p>
+                    <button class="btn btn-outline" onclick="showPage('courses')">View Courses</button>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">📊</div>
+                    <h3>My Grades</h3>
+                    <p id="gpa-display">GPA: 0.00</p>
+                    <button class="btn btn-outline" onclick="showPage('grades')">View Grades</button>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">👤</div>
+                    <h3>Profile</h3>
+                    <p id="student-id-display">Student ID</p>
+                    <button class="btn btn-outline" onclick="showPage('profile')">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Page -->
+        <div class="page" id="courses-page" style="display: none;">
+            <div class="page-header">
+                <h1>Courses</h1>
+                <p>Browse and enroll in courses</p>
+            </div>
+            <div class="courses-content">
+                <div class="courses-tabs">
+                    <button class="tab-btn active" onclick="showTab('available-courses')">Available Courses</button>
+                    <button class="tab-btn" onclick="showTab('my-courses')">My Courses</button>
+                </div>
+                <div class="tab-content" id="available-courses">
+                    <div class="courses-grid" id="available-courses-grid">
+                        <!-- Available courses will be loaded here -->
+                    </div>
+                </div>
+                <div class="tab-content" id="my-courses" style="display: none;">
+                    <div class="courses-grid" id="my-courses-grid">
+                        <!-- My courses will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grades Page -->
+        <div class="page" id="grades-page" style="display: none;">
+            <div class="page-header">
+                <h1>My Grades</h1>
+                <p>View your academic performance</p>
+            </div>
+            <div class="grades-content" id="grades-content">
+                <!-- Grades will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="profile-page" style="display: none;">
+            <div class="page-header">
+                <h1>My Profile</h1>
+                <p>Update your personal information</p>
+            </div>
+            <div class="profile-content">
+                <form id="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profile-first-name">First Name</label>
+                            <input type="text" id="profile-first-name" name="first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-last-name">Last Name</label>
+                            <input type="text" id="profile-last-name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-email">Email</label>
+                        <input type="email" id="profile-email" name="email" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profile-major">Major</label>
+                            <input type="text" id="profile-major" name="major" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-year-level">Year Level</label>
+                            <select id="profile-year-level" name="year_level" required>
+                                <option value="freshman">Freshman</option>
+                                <option value="sophomore">Sophomore</option>
+                                <option value="junior">Junior</option>
+                                <option value="senior">Senior</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>
